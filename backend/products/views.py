@@ -27,3 +27,10 @@ class ProductCreateAPIView(generics.CreateAPIView):
         return super().perform_create(serializer)
 
 product_create_view = ProductCreateAPIView.as_view()
+
+#list create API view
+class ProductListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+product_list_create_view = ProductListCreateAPIView.as_view()

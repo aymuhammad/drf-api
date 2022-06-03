@@ -3,11 +3,7 @@ import requests
 
 # endpoint = "https://httpbin.org/"
 endpoint = "http://127.0.0.1:8000/api/products/" #'localhost:8000/api/'
-
-data = {
-     'content' : 'Auwal Yahya', 'title':'Create a new API', 'price':78.99,
-}
    
-get_response =  requests.post(endpoint, json=data)
+get_response =  requests.get(endpoint)
 print(get_response.json())
 print(get_response.status_code)
