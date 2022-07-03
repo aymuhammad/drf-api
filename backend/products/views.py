@@ -2,7 +2,7 @@ from urllib import response
 from django.http import Http404
 from requests import Response
 
-from rest_framework import generics
+from rest_framework import authentication, generics, mixins, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -11,6 +11,7 @@ from yaml import serialize
 #from django.http import Http404
 
 from .models import Product
+from .permissions import IsStaffEditorPermission
 from .serializers import ProductSerializer
 
 class ProductDetailAPIView(generics.RetrieveAPIView):
@@ -39,14 +40,17 @@ class ProductDestroyAPIView(generics.DestroyAPIView):
     lookup_field = 'pk'
 
     def perform_destroy(self, serializer):
-        #instance
+        instance = serializer
         super().perform_destroy(instance)
 
 product_destroy_view = ProductDestroyAPIView.as_view()
 
-class ProductCreateAPIView(generics.CreateAPIView):
+#list create API view
+class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    authentication_classes = [authentication.SessionAuthentication]
+    permission_classes = [permissions.IsAdminUser, IsStaffEditorPermission]
 
     def perform_create(self, serializer):
         # serializer.save(user=self.request.user)
@@ -59,14 +63,36 @@ class ProductCreateAPIView(generics.CreateAPIView):
         serializer.save(content=content)
         return super().perform_create(serializer)
 
-product_create_view = ProductCreateAPIView.as_view()
-
-#list create API view
-class ProductListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
 product_list_create_view = ProductListCreateAPIView.as_view()
+
+class ProductMixinView(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = Product.objects.all() 
+    serializer_class = ProductSerializer
+    lookup_field = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        #print(args, kwargs)
+        pk = kwargs.get('pk')
+        if pk is not None:
+            return self.retrieve(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, *kwargs)
+
+    def perform_create(self, serializer):
+        # serializer.save(user=self.request.user)
+        print(serializer.validated_data)
+        title = serializer.validated_data.get('title')
+        content = serializer.validated_data.get('content')
+        None
+        if content is None:
+            content = 'this is a single view doing cool stuff'
+        serializer.save(content=content)
+        return super().perform_create(serializer)
+
+product_mixing_view = ProductMixinView.as_view()
+
 
 @api_view(["POST", "GET"])
 def product_alt_view(request, pk=None, *args, **kwargs):
