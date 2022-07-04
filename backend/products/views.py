@@ -1,6 +1,9 @@
+import imp
 from urllib import response
 from django.http import Http404
 from requests import Response
+
+from api.authentication import TokenAuthentication
 
 from rest_framework import authentication, generics, mixins, permissions
 from rest_framework.decorators import api_view
@@ -49,7 +52,7 @@ product_destroy_view = ProductDestroyAPIView.as_view()
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    authentication_classes = [authentication.SessionAuthentication]
+    authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
     permission_classes = [permissions.IsAdminUser, IsStaffEditorPermission]
 
     def perform_create(self, serializer):
