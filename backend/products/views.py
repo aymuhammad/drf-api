@@ -1,3 +1,4 @@
+import email
 import imp
 from urllib import response
 from django.http import Http404
@@ -22,14 +23,15 @@ class ProductListCreateAPIView(StaffEditorPermissionMixin, generics.ListCreateAP
 
     def perform_create(self, serializer):
         # serializer.save(user=self.request.user)
-        print(serializer.validated_data)
+        # print(serializer.validated_data)
+        email = serializer.validated_data.pop('email')
+        print(email)
         title = serializer.validated_data.get('title')
         content = serializer.validated_data.get('content')
         None
         if content is None:
             content = title
         serializer.save(content=content)
-        return super().perform_create(serializer)
 
 product_list_create_view = ProductListCreateAPIView.as_view()
 
